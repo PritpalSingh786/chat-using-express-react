@@ -1,3 +1,4 @@
+// ChatDetail.jsx
 import React, { useEffect, useState } from "react";
 import socket from "./socket";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,46 +17,44 @@ const ChatDetail = ({
   uuid,
 }) => {
   const dispatch = useDispatch();
-
-  // 👇 Use safe fallback in case state.messages is undefined
   const { messages = [] } = useSelector((state) => state.messages || {});
   const [messageInput, setMessageInput] = useState("");
 
-  // 🟡 Register socket and listen for incoming messages
+  // Register socket on userId change
   useEffect(() => {
     if (connectionId) {
       socket.emit("register", connectionId);
     }
+  }, [connectionId, currentUserId]);
 
+  // Receive incoming messages
+  useEffect(() => {
     const handleMessage = (data) => {
       const localTime = new Date(Number(data.timestamp));
       const newMessage = {
         senderId: data.senderId,
-        senderName: data.senderName,
         text: data.message,
-        time: localTime.toLocaleTimeString(),
         date: localTime.toLocaleDateString(),
+        time: localTime.toLocaleTimeString(),
         isMe: data.senderId === currentUserId,
       };
       dispatch(addReceivedMessage(newMessage));
     };
 
     socket.on("receiveMessage", handleMessage);
-
     return () => {
       socket.off("receiveMessage", handleMessage);
     };
-  }, [connectionId, currentUserId, dispatch]);
+  }, [currentUserId, dispatch]);
 
-  // 🟡 Fetch previous messages when chat opens
+  // Fetch messages when user switches
   useEffect(() => {
     if (currentUserId && uuid) {
-      dispatch(clearMessages()); // Clear old messages when switching users
+      dispatch(clearMessages());
       dispatch(fetchMessages({ senderId: currentUserId, receiverId: uuid }));
     }
   }, [dispatch, currentUserId, uuid]);
 
-  // 🟡 Send message via socket
   const sendMessage = () => {
     if (messageInput.trim()) {
       socket.emit("sendMessage", {
@@ -64,8 +63,7 @@ const ChatDetail = ({
         receiverId: uuid,
         message: messageInput,
       });
-
-      setMessageInput(""); // Clear input box
+      setMessageInput("");
     }
   };
 

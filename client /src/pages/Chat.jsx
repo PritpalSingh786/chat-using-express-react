@@ -1,3 +1,4 @@
+// Chat.jsx
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllUsers } from '../features/auth/authSlice';
@@ -6,12 +7,17 @@ import './Chat.css';
 
 const Chat = () => {
   const dispatch = useDispatch();
-  const { usersList, pagination, status, error, id: currentUserId, connectionId } = useSelector(
-    (state) => state.auth
-  );
+  const {
+    usersList,
+    pagination,
+    status,
+    error,
+    id: currentUserId,
+    connectionId,
+  } = useSelector((state) => state.auth);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedUser, setSelectedUser] = useState(null); // Selected user to chat with
+  const [selectedUser, setSelectedUser] = useState(null);
   const perPage = 10;
 
   useEffect(() => {
@@ -36,10 +42,8 @@ const Chat = () => {
 
   return (
     <div className="chat-layout">
-      {/* Sidebar */}
       <div className="chat-sidebar">
         <h2 className="chat-title">Chat Users</h2>
-
         {status === 'loading' && <p className="loading-text">Loading users...</p>}
         {status === 'failed' && <p className="error-text">{error}</p>}
         {noUsers && <p className="no-users-text">No chat users found.</p>}
@@ -58,7 +62,6 @@ const Chat = () => {
               ))}
             </ul>
 
-            {/* Pagination */}
             <div className="pagination-controls">
               <button onClick={handlePrevious} disabled={currentPage === 1} className="pagination-button">
                 Previous
@@ -78,15 +81,14 @@ const Chat = () => {
         )}
       </div>
 
-      {/* Main Chat Area */}
       <div className="chat-main">
         {selectedUser ? (
           <ChatDetail
             userId={selectedUser.userId}
             uuid={selectedUser.uuid}
             receiverConnectionId={selectedUser.connectionId}
-            currentUserId={currentUserId}              // ✅ Passed to ChatDetail
-            connectionId={connectionId}                // ✅ Passed to ChatDetail
+            currentUserId={currentUserId}
+            connectionId={connectionId}
           />
         ) : (
           <p className="select-user-placeholder">Select a user to start chatting</p>

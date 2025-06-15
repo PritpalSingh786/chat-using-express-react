@@ -1,10 +1,10 @@
+// index.ts
 import express from "express";
 import userRoutes from "./routes/userRoutes";
 import messageRoutes from "./routes/messageRoutes";
-import postRoutes from "./routes/postRoutes"
+import postRoutes from "./routes/postRoutes";
 import { AppDataSource } from "./config/data-source";
 import { MessageEntity } from "./entities/MessageEntity";
-import { User } from "./entities/User";
 import "reflect-metadata";
 import cors from "cors";
 import http from "http";
@@ -19,14 +19,20 @@ app.use("/api/post", postRoutes);
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "http://192.168.0.115:3000", credentials: true },
+  cors: {
+    origin: "http://192.168.0.115:3000",
+    credentials: true,
+  },
 });
 
 const connectedUsers: Record<string, string> = {};
 
 io.on("connection", (socket) => {
+  console.log("Socket connected:", socket.id);
+
   socket.on("register", (connectionId: string) => {
     connectedUsers[connectionId] = socket.id;
+    console.log("Registered:", connectionId, "=>", socket.id);
   });
 
   socket.on(
@@ -40,11 +46,16 @@ io.on("connection", (socket) => {
         timestamp: now,
       };
 
-      if (receiverSocketId)
+      if (receiverSocketId) {
         io.to(receiverSocketId).emit("receiveMessage", payload);
+      } else {
+        console.warn("Receiver not connected:", receiverConnectionId);
+      }
+
+      // Echo to sender
       socket.emit("receiveMessage", payload);
 
-      // Save message
+      // Save to DB
       const msgRepo = AppDataSource.getRepository(MessageEntity);
       const savedMessage = msgRepo.create({
         senderId,
@@ -62,7 +73,10 @@ io.on("connection", (socket) => {
     const disconnectedConnId = Object.keys(connectedUsers).find(
       (key) => connectedUsers[key] === socket.id
     );
-    if (disconnectedConnId) delete connectedUsers[disconnectedConnId];
+    if (disconnectedConnId) {
+      delete connectedUsers[disconnectedConnId];
+      console.log("Disconnected:", disconnectedConnId);
+    }
   });
 });
 
