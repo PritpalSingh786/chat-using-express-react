@@ -20,7 +20,7 @@ app.use("/api/post", postRoutes);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://192.168.0.115:3000",
+    origin: "http://localhost:3000/",
     credentials: true,
   },
 });
