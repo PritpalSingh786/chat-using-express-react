@@ -2,13 +2,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_URL = "http://192.168.0.115:5000/api/messages";
+const API_URL = "http://localhost:5000/api/messages";
 
 export const fetchMessages = createAsyncThunk(
   "messages/fetchMessages",
   async ({ senderId, receiverId }, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`http://192.168.0.115:5000/api/messages/${senderId}/${receiverId}`);
+      const res = await axios.get(`http://localhost:5000/api/messages/${senderId}/${receiverId}`);
       const formatted = res.data.map((msg) => {
         const time = new Date(Number(msg.createdAt));
         return {
